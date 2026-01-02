@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dropdown Buttons</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
+
+    <style>
+        /* General page style */
+        html,
+        body {
+            background-color: rgb(0, 0, 0);
+            height: 100%;
+            color: antiquewhite;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Base button styling */
+        button {
+            position: relative;
+            display: inline-block;
+            margin: 15px;
+            padding: 15px 30px;
+            text-align: center;
+            font-size: 18px;
+            letter-spacing: 1px;
+            color: #5ac19a;
+            background: transparent;
+            cursor: pointer;
+            border: 2px solid #5ac19a;
+            border-radius: 10px;
+            box-shadow: inset 0 0 0 0 #5ac19a;
+            transition: ease-out 0.5s;
+        }
+
+        button:hover {
+            color: white;
+            box-shadow: inset 0 -100px 0 0 #5ac19a;
+        }
+
+        button:active {
+            transform: scale(1.5);
+        }
+
+        /* Container for horizontal layout */
+        .dropdown-container {
+            display: flex; /* horizontal alignment */
+            gap: 20px; /* spacing between dropdowns */
+            padding: 10px;
+            flex-wrap: wrap; /* optional: wrap to next line on small screens */
+        }
+
+        /* Dropdown structure */
+        .dropdown {
+            position: relative;
+        }
+
+        /* Dropdown content */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            min-width: 160px;
+            z-index: 1;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* Make content visible when toggled */
+        .dropdown-content.show {
+            display: block;
+        }
+
+        /* Buttons inside dropdown inherit main button style */
+        .dropdown-content button {
+            width: 100%;
+            margin: 5px 0;
+            padding: 12px 20px;
+            font-size: 16px;
+            text-align: left;
+        }
+
+        .container {
+            display: flex; /* place children side by side */
+            /* push left div left, right div right */
+            border: 1px solid black; /* optional: container border */
+            padding: 10px;
+        }
+
+        #cy {
+            width: 75%;
+            height: 800px;
+            background: transparent;
+            backdrop-filter: blur(10px); /* frosted glass blur */
+            -webkit-backdrop-filter: blur(10px); /* Safari */
+            border: 2px ridge #5ac19a;
+            border-radius: 15px;
+            border-top-right-radius: 0ch;
+            border-bottom-right-radius: 0;
+        }
+        #div2 {
+            width: 23%;
+            height: 800px;
+            display: flex;
+            flex-direction: column;  /* vertical stacking */
+            border: 2px ridge #5ac19a;
+            border-left: none;
+            border-radius: 0 15px 15px 0; /* rounded on right side */
+        }
+
+        /* Graph Properties (top section, 60%) */
+        #graphprop {
+            flex: 0 0 60%;
+            padding: 10px;
+            border-bottom: 2px ridge #5ac19a; /* only bottom border */
+            border-radius: 0; /* no rounding inside */
+        }
+
+        /* Traversal Order (bottom section, 40%) */
+        #traversal {
+            flex: 0 0 40%;
+            padding: 10px;
+            overflow-y: auto; /* scroll if content overflows */
+        }
+
+
+    </style>
+</head>
+<body>
+<div class="dropdown-container">
+
+    <div class="dropdown">
+        <button class="dropbtn" onclick="toggleDropdown(event)">
+            Algorithims
+        </button>
+        <div class="dropdown-content">
+            <button onclick="selectOption(this)" id="DFS">DFS</button>
+            <button onclick="selectOption(this)" id="BFS">BFS</button>
+        </div>
+    </div>
+
+
+    <div class="dropdown">
+        <button class="dropbtn" onclick="toggleDropdown(event)">Reset</button>
+        <div class="dropdown-content">
+            <button onclick="selectOption(this)" id="ResetAlgo">
+                Reset Algorithim
+            </button>
+            <button onclick="selectOption(this)" id="ResetG">Reset Graph</button>
+        </div>
+    </div>
+
+
+    <div class="dropdown">
+        <button class="dropbtn" onclick="toggleDropdown(event)">Source</button>
+        <div class="dropdown-content">
+            <button onclick="selectOption(this)" id="Draw">Draw</button>
+            <button onclick="selectOption(this)" id="FromJSON">Adj List</button>
+            <input type="file" id="fileInput" style="display: none" />
+            <button onclick="selectOption(this)" id="AdjMatrix">Adj Matrix</button>
+            <input type="file" id="fileInputAdjMatrix" style="display: none" />
+        </div>
+    </div>
+
+    <div class="dropdown">
+        <button class="dropbtn" onclick="toggleDropdown(event)">
+            Graph Type
+        </button>
+        <div class="dropdown-content">
+            <button onclick="selectOption(this)" id="Directed">Directed</button>
+            <button onclick="selectOption(this)" id="Undirected">
+                Undirected
+            </button>
+
+            <button onclick="selectOption(this)" id="Labeled">Labeled</button>
+            <button onclick="selectOption(this)" id="Unlabeled">Unlabeled</button>
+
+            <button onclick="selectOption(this)" id="Weighted">Weighted</button>
+            <button onclick="selectOption(this)" id="Unweighted">
+                Unweighted
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<div id="div" class="container">
+    <div id="cy"></div>
+    <div id="div2" class="container2">
+        <div id="graphprop">
+            <h3>Graph Properties</h3>
+            <ul>
+                <li id="Label">Labeled: True</li>
+                <li id="Direct">Directed: False</li>
+                <li id="Weight">Weighted: False</li>
+
+            </ul>
+        </div>
+
+        <div id="traversal">
+            <p id="par">
+                <strong>Traversal Order:</strong>
+            </p>
+            <div id="orderList"></div>
+        </div>
+
+    </div>
+</div>
+
+<script >
+    let cy = cytoscape({
+        container: document.getElementById('cy'),
+        /* elements: [
+
+            { data: { id: 'a' } },
+            { data: { id: 'b' } },
+            { data: { id: 'c' } },
+            { data: { id: 'd' } },
+            { data: { id: 'e' } },
+
+            { data: { id: 'ab', source: 'a', target: 'b' } },
+            { data: { id: 'ac', source: 'a', target: 'c' } },
+            { data: { id: 'ad', source: 'a', target: 'd' } },
+            { data: { id: 'ae', source: 'a', target: 'e' } },
+            { data: { id: 'bc', source: 'b', target: 'c' } },
+            { data: { id: 'bd', source: 'b', target: 'd' } },
+            { data: { id: 'be', source: 'b', target: 'e' } },
+            { data: { id: 'cd', source: 'c', target: 'd' } },
+            { data: { id: 'ce', source: 'c', target: 'e' } },
+            { data: { id: 'de', source: 'd', target: 'e' } }
+          ],*/
+
+        style: [
+            {
+                selector: 'node',
+                style: {
+                    color: 'rgba(0, 0, 0, 0.25)',
+                    'background-color': '#5ac19a',
+                    'border-width': 2,
+                    'border-color': 'rgba(0, 0, 0, 0.25)',
+                    'border-style': 'solid',
+                    width: 20,
+                    height: 20,
+                    label: 'data(id)',
+                    'font-size': 10,
+                    'text-valign': 'center',
+                    'text-halign': 'center'
+                }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'curve-style': 'bezier',
+                    'line-color': '#5ac19a',
+                    width: 2,
+                    'target-arrow-shape': 'triangle',
+                    'target-arrow-color': '#5ac19a',
+                    'line-cap': 'round',
+                    opacity: 0.7,
+                    label: 'data(weight)',
+                    color: '#5ac19a',
+
+                    'font-size': 15,
+
+                    'text-background-opacity': 0,
+                    'control-point-distance': 50,
+                    'control-point-weight': 0.5,
+                    'text-margin-y': -50,
+                    'z-index': 1
+                }
+            }
+        ]
+    });
+    /*
+    class Graphs {
+      constructor() {
+        this.directed = true;
+        this.Label = false;
+        this.adjlist = {};
+        this.count = 0;
+        // Keep variables for later use
+        this.Source = null;
+        this.Weighted = true;
+        this.node_height = 20;
+        this.node_width = 20;
+
+        // Keep track of the selected node
+        this.currnode = null;
+      }
+
+      Draw() {
+        // Click on background to add node
+        cy.on('click', (event) => {
+          let labell;
+
+          if (event.target === cy) {
+            if (this.Label === false) {
+              labell = prompt('Enter Node Label');
+              console.log(labell);
+            } else {
+              labell = String.fromCharCode(this.count + 65);
+              this.count += 1;
+            }
+
+            if (!labell) return; // prevent null/empty labels
+
+            if (cy.getElementById(labell).length > 0) {
+              alert('Label already in use');
+              if (this.Label) {
+                this.count += 1; // skip to next label
+              }
+            } else {
+              cy.add({
+                group: 'nodes',
+                data: { id: labell, label: labell },
+                position: event.position
+              });
+
+              // Style only the new node
+              cy.getElementById(labell).style({
+                height: this.node_height*5,
+                width: this.node_width*5
+              });
+
+              this.adjlist[labell] = [];
+              console.log(this.adjlist);
+            }
+          }
+        });
+
+        // Click on a node
+        cy.on('click', 'node', (evnt) => {
+          let nextnode = null;
+
+          if (this.currnode == null) {
+            this.currnode = evnt.target;
+            console.log('Selected');
+
+            this.currnode.style({
+              color: 'rgba(0, 0, 0, 0.25)',
+              'background-color': 'rgb(255, 188, 66)',
+              'border-width': 2,
+              'border-color': 'rgba(0, 0, 0, 0.25)',
+              'border-style': 'solid',
+              width: 90,
+              height: 90,
+              label: 'data(id)',
+              'font-size': 20,
+              'text-valign': 'center',
+              'text-halign': 'center'
+            });
+          } else {
+            if (evnt.target.id() === this.currnode.id()) {
+              alert('Self Loops are not allowed');
+              this.currnode = null; // reset selection
+            } else {
+              nextnode = evnt.target;
+
+              if (!this.Weighted) {
+                cy.add({
+                  group: 'edges',
+                  data: {
+                    id: this.currnode.id() + '-' + nextnode.id(),
+                    source: this.currnode.id(),
+                    target: nextnode.id()
+                  }
+                });
+              } else {
+                let input = prompt('Enter edge weight');
+                let weightt = parseFloat(input);
+                if (input === null || isNaN(weightt)) {
+                  alert('Invalid weight');
+                  this.currnode = null;
+                  return;
+                }
+                cy.add({
+                  group: 'edges',
+                  data: {
+                    id: this.currnode.id() + '-' + nextnode.id(),
+                    source: this.currnode.id(),
+                    target: nextnode.id(),
+                    weight: weightt
+                  }
+                });
+              }
+
+              // Reset style of selected node
+              this.currnode.style({
+                'background-color': '#5ac19a',
+                label: this.currnode.id(),
+                'text-valign': 'center',
+                'text-halign': 'center',
+                width: 70,
+                height: 70
+              });
+
+              // Update adjacency list
+              if (this.directed) {
+                this.adjlist[this.currnode.id()].push(nextnode.id());
+              } else {
+                this.adjlist[this.currnode.id()].push(nextnode.id());
+                this.adjlist[nextnode.id()].push(this.currnode.id());
+              }
+
+              console.log(this.adjlist[this.currnode.id()]);
+              if (this.adjlist[nextnode.id()]) {
+                console.log(this.adjlist[nextnode.id()]);
+              }
+
+              this.currnode = null; // reset for next selection
+            }
+          }
+        });
+      }
+    }*/
+
+    class Graphs {
+        constructor() {
+            this.directed = false;
+            this.Label = true;
+            this.adjlist = {};
+            this.count = 0;
+            this.Source = null;
+            this.Weighted = false;
+            this.node_height = 20;
+            this.node_width = 20;
+
+            this.currnode = null;
+
+
+            if (!this.directed) {
+                cy.style()
+                    .selector('edge')
+                    .style({
+                        'curve-style': 'bezier',
+                        'target-arrow-shape': 'none',
+
+                        'line-cap': 'round'
+                    })
+                    .update();
+            }
+        }
+
+        Draw() {
+
+            cy.on('click', (event) => {
+                let labell;
+
+                if (event.target === cy) {
+                    if (this.Label === false) {
+                        labell = prompt('Enter Node Label');
+                        console.log(labell);
+                    } else {
+                        this.count += 1;
+                        labell = String(this.count);
+                    }
+
+                    if (!labell) return;
+
+                    if (cy.getElementById(labell).length > 0) {
+                        alert('Label already in use');
+                        if (this.Label) {
+                            this.count += 1;
+                        }
+                    } else {
+                        cy.add({
+                            group: 'nodes',
+                            data: { id: labell, label: labell },
+                            position: event.position
+                        });
+
+
+                        cy.getElementById(labell).style({
+                            height: this.node_height,
+                            width: this.node_width,
+                            'font-size':10
+                        });
+
+                        this.adjlist[labell] = [];
+                        console.log(this.adjlist);
+                    }
+                }
+            });
+
+
+            cy.on('click', 'node', (evnt) => {
+                let nextnode = null;
+
+                if (this.currnode == null) {
+                    this.currnode = evnt.target;
+                    console.log('Selected');
+
+                    this.currnode.style({
+                        color: 'rgba(0, 0, 0, 0.25)',
+                        'background-color': 'rgb(255, 188, 66)',
+                        'border-width': 2,
+                        'border-color': 'rgba(0, 0, 0, 0.25)',
+                        'border-style': 'solid',
+                        width: this.node_height*2,
+                        height: this.node_width*2,
+                        label: 'data(id)',
+                        'font-size': 10,
+                        'text-valign': 'center',
+                        'text-halign': 'center'
+                    });
+                } else {
+                    if (evnt.target.id() === this.currnode.id()) {
+                        alert('Self Loops are not allowed');
+                        this.currnode = null;
+                    } else {
+                        nextnode = evnt.target;
+
+                        if (!this.Weighted) {
+                            cy.add({
+                                group: 'edges',
+                                data: {
+                                    id: this.currnode.id() + '-' + nextnode.id(),
+                                    source: this.currnode.id(),
+                                    target: nextnode.id()
+                                }
+                            });
+                        } else {
+                            let input = prompt('Enter edge weight');
+                            let weightt = parseFloat(input);
+                            if (input === null || isNaN(weightt)) {
+                                alert('Invalid weight');
+                                this.currnode = null;
+                                return;
+                            }
+                            cy.add({
+                                group: 'edges',
+                                data: {
+                                    id: this.currnode.id() + '-' + nextnode.id(),
+                                    source: this.currnode.id(),
+                                    target: nextnode.id(),
+                                    weight: weightt
+                                }
+                            });
+                        }
+
+
+                        this.currnode.style({
+                            'background-color': '#5ac19a',
+                            label: this.currnode.id(),
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            width: this.node_width,
+                            height: this.node_height,
+                            'font-size':10
+                        });
+
+
+                        if (this.directed) {
+                            this.adjlist[this.currnode.id()].push(nextnode.id());
+                        } else {
+                            this.adjlist[this.currnode.id()].push(nextnode.id());
+                            this.adjlist[nextnode.id()].push(this.currnode.id());
+                        }
+
+                        console.log(this.adjlist[this.currnode.id()]);
+                        if (this.adjlist[nextnode.id()]) {
+                            console.log(this.adjlist[nextnode.id()]);
+                        }
+
+                        this.currnode = null;
+                    }
+                }
+            })
+        }
+
+
+
+
+        updateEdgeStyle() {
+            if (this.directed) {
+                cy.style()
+                    .selector('edge')
+                    .style({
+                        'curve-style': 'bezier',
+                        'target-arrow-shape': 'triangle',
+                        'target-arrow-color': '#5ac19a',
+                        'line-cap': 'round'
+                    })
+                    .update();
+            } else {
+                cy.style()
+                    .selector('edge')
+                    .style({
+                        'curve-style': 'haystack',
+                        'target-arrow-shape': 'none',
+                        'line-cap': 'round'
+                    })
+                    .update();
+            }}
+
+        updateNodeSize(size) {
+            if (this.node_height + size >= 20 && this.node_height + size <= 90) {
+                this.node_height += size;
+                this.node_width += size;
+
+                cy.style()
+                    .selector('node')
+                    .style({
+                        height: this.node_height,
+                        width: this.node_width,
+                        'font-size': 0.5 * this.node_width
+                    })
+                    .update();
+
+                // Keep graph properly zoomed out
+                cy.fit(cy.nodes(), 50);
+            }
+        }
+
+
+        From_JSON() {
+            document.getElementById('fileInput').addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const graphData = JSON.parse(e.target.result);
+                    this.addGraphToCy(graphData);
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        addGraphToCy(graphData) {
+            cy.elements().remove();
+            this.adjlist = {};
+
+            graphData.nodes.forEach((node) => {
+                cy.add({ group: 'nodes', data: { id: node, label: node } });
+                this.adjlist[node] = [];
+            });
+
+            for (let src in graphData.adjList) {
+                graphData.adjList[src].forEach((dest) => {
+                    const edgeId = src + '-' + dest;
+                    const reverseId = dest + '-' + src;
+                    if (
+                        cy.getElementById(edgeId).length === 0 &&
+                        cy.getElementById(reverseId).length === 0
+                    ) {
+                        cy.add({
+                            group: 'edges',
+                            data: { id: edgeId, source: src, target: dest }
+                        });
+                        this.adjlist[src].push(dest);
+                        if (!this.directed) this.adjlist[dest].push(src);
+                    }
+                });
+            }
+            cy.style().selector('node').style({
+                'width': this.node_height,
+                'height': this.node_width
+            }).update();
+
+            cy.layout({ name: 'grid' }).run();
+            cy.fit(cy.nodes(), 50);
+        }
+
+
+        From_Matrix() {
+            const fileInput = document.getElementById('fileInputAdjMatrix');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const matrixData = JSON.parse(e.target.result);
+                this.addMatrixToCy(matrixData);
+            };
+            reader.readAsText(file);
+        }
+
+
+
+        addMatrixToCy(matrixData) {
+            cy.elements().remove();
+            this.adjlist = {};
+
+            const n = matrixData.matrix.length;
+            const nodes = Array.from({ length: n }, (_, i) => String(i));
+
+            nodes.forEach((node) => {
+                cy.add({ group: 'nodes', data: { id: node, label: node } });
+                this.adjlist[node] = [];
+            });
+
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    if (matrixData.matrix[i][j] !== 0) {
+                        const src = String(i);
+                        const dest = String(j);
+                        const edgeId = src + '-' + dest;
+                        const reverseId = dest + '-' + src;
+
+                        if (this.directed) {
+                            if (cy.getElementById(edgeId).length === 0) {
+                                cy.add({
+                                    group: 'edges',
+                                    data: { id: edgeId, source: src, target: dest }
+                                });
+                                this.adjlist[src].push(dest);
+                            }
+                        } else {
+                            if (
+                                cy.getElementById(edgeId).length === 0 &&
+                                cy.getElementById(reverseId).length === 0
+                            ) {
+                                cy.add({
+                                    group: 'edges',
+                                    data: { id: edgeId, source: src, target: dest }
+                                });
+                                this.adjlist[src].push(dest);
+                                this.adjlist[dest].push(src);
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            cy.style().selector('node').style({
+                'width': this.node_height,
+                'height': this.node_width
+            }).update();
+
+            cy.layout({ name: 'grid' }).run();
+            cy.fit(cy.nodes(), 50);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        DFS(start) {
+            if (!(start in this.adjlist)) {
+                alert('Current Node Does Not Exist in The Graph');
+                return [];
+            }
+
+            let visited = new Set();
+            let result = [];
+            let traversedEdges = [];
+
+            const dfs = (node) => {
+                visited.add(node);
+                result.push(node);
+
+                for (let neighbor of this.adjlist[node]) {
+                    if (!visited.has(neighbor)) {
+                        traversedEdges.push([node, neighbor]);
+                        dfs(neighbor);
+                    }
+                }
+            };
+
+            dfs(start);
+
+            this.animateTraversal(result, traversedEdges);
+
+            console.log('DFS Order:', result);
+            return result;
+        }
+
+        BFS(start) {
+            if (!(start in this.adjlist)) {
+                alert('Current Node Does Not Exist in The Graph');
+                return [];
+            }
+
+            let visited = new Set();
+            let result = [];
+            let traversedEdges = [];
+            let queue = [start];
+
+            visited.add(start);
+
+            while (queue.length > 0) {
+                let node = queue.shift();
+                result.push(node);
+
+                for (let neighbor of this.adjlist[node]) {
+                    if (!visited.has(neighbor)) {
+                        visited.add(neighbor);
+                        queue.push(neighbor);
+                        traversedEdges.push([node, neighbor]);
+                    }
+                }
+            }
+
+            this.animateTraversal(result, traversedEdges);
+
+            console.log('BFS Order:', result);
+            return result;
+        }
+
+        animateTraversal(order, edges) {
+            let orderList = document.getElementById('orderList');
+            let i = 0;
+
+            const step = () => {
+                if (i < order.length) {
+                    let node = cy.getElementById(order[i]);
+
+
+                    let line = document.createElement('div');
+                    line.textContent = '-->' + order[i];
+                    orderList.appendChild(line);
+
+                    node.animate(
+                        {
+                            style: {
+                                'background-color': 'rgb(255, 188, 66)',
+                                width: this.node_width * 2,
+                                height: this.node_height * 2
+                            }
+                        },
+                        { duration: 600, complete: step }
+                    );
+
+                    if (i > 0 && edges[i - 1]) {
+                        let [u, v] = edges[i - 1];
+                        let edge = cy.getElementById(u + '-' + v);
+
+                        if (edge.length > 0) {
+                            edge.animate({ style: { 'line-color': 'red' } }, { duration: 600 });
+                        }
+                    }
+
+                    i++;
+                }
+            };
+
+            step();
+        }
+
+        Reset_Algo() {
+
+            cy.elements().removeStyle();
+
+            let orderList = document.getElementById('orderList');
+            if (orderList) orderList.innerHTML = '';
+        }
+
+
+
+        Reset_Graph() {
+            cy.elements().remove();
+            this.adjlist = {};
+            this.currnode = null;
+            console.log('Graph reset');
+            this.count = 0;
+        }
+
+
+
+
+
+    }
+
+
+
+
+
+
+    // @ts-ignore
+    const DFS_Button = document.getElementById('DFS');
+    console.log(DFS_Button);
+    // @ts-ignore
+    const BFS_Button = document.getElementById('BFS');
+
+    // @ts-ignore
+    const ResetAlgo_Button = document.getElementById('ResetAlgo');
+    console.log(ResetAlgo_Button);
+    // @ts-ignore
+    const Reset_Graph = document.getElementById('ResetG');
+    console.log(Reset_Graph);
+
+    const Source_Button = document.getElementById('Draw');
+    console.log(Source_Button);
+    const Draw_Button = document.getElementById('Draw');
+    console.log(Draw_Button);
+    const FromJSON_Button = document.getElementById('FromJSON');
+    console.log(FromJSON_Button);
+    const AdjMatrix_Button=document.getElementById('AdjMatrix')
+    console.log(AdjMatrix_Button)
+
+    // @ts-ignore
+    const Labeled_Button = document.getElementById('Labeled');
+    console.log(Labeled_Button);
+    const Unlabeled_Button = document.getElementById('Unlabeled');
+    console.log(Unlabeled_Button);
+
+    // @ts-ignore
+    const Directed_Button = document.getElementById('Directed');
+    console.log(Directed_Button);
+    const Undirected_Button = document.getElementById('Undirected');
+    console.log(Undirected_Button);
+
+    // @ts-ignore
+    const Weighted_Button = document.getElementById('Weighted');
+    console.log(Weighted_Button);
+    const Unweighted_Button = document.getElementById('Unweighted');
+    console.log(Unweighted_Button);
+    const Plus_Button = document.getElementById('Plus');
+    const Minus_Button=document.getElementById('Minus')
+    console.log(Plus_Button)
+    const GraphProperties=document.getElementById('graphprop')
+    const Label_Button=document.getElementById("Label")
+    const Direct_Button=document.getElementById("Direct")
+    const Weight_Button=document.getElementById("Weight")
+    const Size_Button=document.getElementById("Size");
+
+    // @ts-ignore
+    const graph = new Graphs();
+    /*
+    Plus_Button.addEventListener('click', ()=>{
+        graph.updateNodeSize(10)
+    })
+    Minus_Button.addEventListener('click',()=>{
+        graph.updateNodeSize(-10)
+    })*/
+    Draw_Button.addEventListener('click', () => {
+        graph.Reset_Graph();
+        graph.Draw();
+    });
+
+    FromJSON_Button.addEventListener('click', () => {
+        graph.Reset_Graph();
+        document.getElementById('fileInput').click();
+        graph.From_JSON();
+    });
+
+    AdjMatrix_Button.addEventListener('click', () => {
+        document.getElementById('fileInputAdjMatrix').click();
+    });
+
+
+    document.getElementById('fileInputAdjMatrix').addEventListener('change', () => {
+        graph.From_Matrix();
+    });
+
+    DFS_Button.addEventListener('click', () => {
+        let startt = prompt('Enter Start Node');
+        graph.DFS(startt);
+    });
+
+    BFS_Button.addEventListener('click', () => {
+        let startt = prompt('Enter Start Node');
+        graph.BFS(startt);
+    });
+    ResetAlgo_Button.addEventListener('click', () => {
+        graph.Reset_Algo();
+    });
+    Reset_Graph.addEventListener('click', () => {
+        graph.Reset_Graph();
+    });
+
+    Directed_Button.addEventListener('click', () => {
+        graph.directed = true;
+        graph.updateEdgeStyle();
+        graph.Reset_Graph();
+        Weight_Button.text="True"
+        document.getElementById("Direct").textContent = "Directed: True";
+    });
+
+    Undirected_Button.addEventListener('click', () => {
+        graph.directed = false;
+        graph.updateEdgeStyle();
+        graph.Reset_Graph();
+
+        document.getElementById("Direct").textContent = "Directed: False";
+    });
+
+    Labeled_Button.addEventListener('click', () => {
+        graph.Label = true;
+        graph.Reset_Graph();
+        document.getElementById("Label").textContent = "Labeled: True";
+
+    });
+    Unlabeled_Button.addEventListener('click', () => {
+        graph.Label = false;
+        graph.Reset_Graph();
+        document.getElementById("Label").textContent = "Labeled: False";
+    });
+    Weighted_Button.addEventListener('click', () => {
+        graph.Weighted = true;
+        graph.Reset_Graph();
+        document.getElementById("Weight").textContent = "Weighted: True";
+    });
+    Unweighted_Button.addEventListener('click', () => {
+        graph.Weighted = false;
+        graph.Reset_Graph();
+        document.getElementById("Weight").textContent = "Weighted: False";
+    });
+
+
+
+    function toggleDropdown(event) {
+
+        document.querySelectorAll('.dropdown-content').forEach((drop) => {
+            if (drop !== event.currentTarget.nextElementSibling) {
+                drop.classList.remove('show');
+            }
+        });
+
+        event.currentTarget.nextElementSibling.classList.toggle('show');
+    }
+
+    function selectOption(button) {
+        alert(`You clicked: ${button.textContent}`);
+        // Close parent dropdown
+        button.parentElement.classList.remove('show');
+    }
+
+    window.onclick = function (event) {
+        if (!event.target.matches('.dropbtn')) {
+            document.querySelectorAll('.dropdown-content').forEach((drop) => {
+                drop.classList.remove('show');
+            });
+        }
+    };
+
+    function toggleDropdown(event) {
+
+        document.querySelectorAll('.dropdown-content').forEach((drop) => {
+            if (drop !== event.currentTarget.nextElementSibling) {
+                drop.classList.remove('show');
+            }
+        });
+
+        event.currentTarget.nextElementSibling.classList.toggle('show');
+    }
+
+    function selectOption(button) {
+
+        button.parentElement.classList.remove('show');
+    }
+
+    window.onclick = function (event) {
+        if (!event.target.matches('.dropbtn')) {
+            document.querySelectorAll('.dropdown-content').forEach((drop) => {
+                drop.classList.remove('show');
+            });
+        }
+    };
+
+
+
+</script>
+</body>
+</html>
