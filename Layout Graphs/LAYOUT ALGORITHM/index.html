@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Layout Controller</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.21.1/cytoscape.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="cy"></div>
+
+<!-- Left Control Panel -->
+<div id="draggablePanel" class="panel">
+    <div class="panel-header" id="dragHandle">
+        ⚙️ Layout Controls
+    </div>
+
+    <div class="form-group">
+        <label class="form-label" for="layoutSelect">Select Layout:</label>
+        <select id="layoutSelect" class="form-select">
+            <option value="eades">EADES</option>
+            <option value="fruchterman">Fruchterman-Reingold</option>
+        </select>
+    </div>
+
+    <div class="slider-group">
+        <div class="slider-container" id="slider1Container">
+            <label class="slider-label" for="myRange1">C1 (Spring):</label>
+            <input type="range" id="myRange1" class="slider" min="0.1" max="10" step="0.1" value="2">
+            <span id="rangeValue1" class="slider-value">2</span>
+        </div>
+        <div class="slider-container" id="slider2Container">
+            <label class="slider-label" for="myRange2">C2 (Opt. Dist):</label>
+            <input type="range" id="myRange2" class="slider" min="10" max="200" step="1" value="100">
+            <span id="rangeValue2" class="slider-value">100</span>
+        </div>
+        <div class="slider-container" id="slider3Container">
+            <label class="slider-label" for="myRange3">C3 (Repulsion):</label>
+            <input type="range" id="myRange3" class="slider" min="100" max="20000" step="100" value="10000">
+            <span id="rangeValue3" class="slider-value">10000</span>
+        </div>
+        <div class="slider-container" id="slider4Container">
+            <label class="slider-label" for="myRange4">C4 (Damping):</label>
+            <input type="range" id="myRange4" class="slider" min="0.01" max="1" step="0.01" value="0.5">
+            <span id="rangeValue4" class="slider-value">0.5</span>
+        </div>
+        <div class="slider-container">
+            <label class="slider-label" for="epsilonRange">Epsilon (Threshold):</label>
+            <input type="range" id="epsilonRange" class="slider" min="0.01" max="10" step="0.01" value="1">
+            <span id="epsilonValue" class="slider-value">1</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label" for="iterationRange">Iterations:</label>
+        <input type="range" id="iterationRange" class="slider" min="1" max="500" value="250">
+        <span id="iterationValue" class="slider-value">250</span>
+    </div>
+
+    <button class="btn btn-primary" id="randomBtn">RANDOM</button>
+    <button class="btn btn-primary" id="drawModeBtn">Enable Draw Mode</button>
+    <button class="btn btn-primary" id="startBtn">START</button>
+    <button class="btn btn-primary hidden" id="stopBtn">STOP</button>
+    <button class="btn btn-danger" id="resetBtn">RESET GRAPH</button>
+</div>
+
+<!-- Right Stats Panel -->
+<div id="statsPanel" class="panel">
+    <div class="panel-header" id="statsDragHandle">
+        📊 Force Statistics
+    </div>
+
+    <div>
+        <div class="stat-box">
+            <div class="stat-label">Current Iteration:</div>
+            <div id="currentIteration" class="stat-value">0</div>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-label">Max Force:</div>
+            <div id="maxForce" class="stat-value">0.00</div>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-label">Avg Force:</div>
+            <div id="avgForce" class="stat-value">0.00</div>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-label">Status:</div>
+            <div id="status" class="stat-status">Idle</div>
+        </div>
+    </div>
+
+    <div class="history-container">
+        <div class="history-title">Force History:</div>
+        <div id="forceHistory" class="history-content">
+            <div class="history-empty">No data yet</div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
